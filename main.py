@@ -1,4 +1,5 @@
 import pygame
+import random
 
 pygame.init()
 info = pygame.display.Info()
@@ -14,6 +15,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 x = 0
 y = 0
+flaga = True
 gravity = 4
 gravity_kef = 2  # gravity * gravity_t
 gravity_t = 0
@@ -28,33 +30,39 @@ player = pygame.sprite.Sprite(all_sprite)  # создаем спрайт
 player.image = pygame.image.load('images.jpg')  # добавляем спрайту картинку
 player.image = pygame.transform.scale(player.image, (50, 50))
 player.rect = player.image.get_rect()
-player.rect.topleft = (200,500)
+player.rect.topleft = (200,450)
 x = 200
-y = 500
+y = 450
 platform = pygame.sprite.Sprite(obstacles, all_sprite)  # создаем спрайт
 platform.image = pygame.image.load('images.jpg')  # добавляем спрайту картинку
 platform.image = pygame.transform.scale(platform.image, (100, 20))
 platform.rect = platform.image.get_rect()
-platform.rect.topleft = (200, 550)
-
-def spawn_obstacle():
+platform.rect.topleft = (200, 450)
+def spawn_obstacle(y):
     obstacle = pygame.sprite.Sprite(all_sprite, obstacles)
     image_index = random.randint(1, 2)
     obstacle.image = pygame.image.load(f'platform{image_index}.png')
     obstacle.rect = obstacle.image.get_rect()
-    obstacle.rect.x = random.randint(
-        obstacle.rect.width // 2, SCREEN_WIDTH - obstacle.rect.width // 2
-    )
-    obstacle.rect.y = -150
+    print(random.randint(0, int(info_w)))
+    obstacle.rect.x = random.randint(0, int(info_w))
+    obstacle.rect.y = y
+def create_initial_obstacles():
+    fixed_y_positions = [100, 200, 300, 400, 500, 600]
+    for y in fixed_y_positions:
+        spawn_obstacle(y)
 
 jumpflag = False
 run = True
+create_initial_obstacles()
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
     
     screen.fill(WHITE)
+    if flaga:
+        create_initial_obstacles()
+        flaga = False
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
         x += speed
@@ -72,17 +80,18 @@ while run:
     #gravity platform
     for obstacle in obstacles:
         if changeFlag:
-            obstacle.rect.y += gravity * gravity_t
+            obstacle.rect.y -= gravity * gravity_t
             if obstacle.rect.top > info_h:
-                spawn_obstacle()
+                spawn_obstacle(0)
                 obstacle.kill()
     changeFlag = False
     #draw
     player.rect.centerx = x  # управление координатами спрайта
     player.rect.centery = y   # управление координатами спрайта
     screen.blit(player.image, player.rect)  # отрисовываем спрайт на экране
-    screen.blit(platform.image, platform.rect)  # отрисовываем спрайт на экране
-    if pygame.sprite.collide_mask(player, platform):
+    for obstacle in obstacles:
+        screen.blit(obstacle.image, obstacle.rect)
+    if pygame.sprite.collide_mask(player, platform) and gravity_t>0:
         jumpflag = True
     
     pygame.display.update()
