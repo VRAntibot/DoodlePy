@@ -19,7 +19,7 @@ gravity_kef = 2  # gravity * gravity_t
 gravity_t = 0
 gravity_t_max = -1
 speed = 5
-
+changeFlag = False
 all_sprite = pygame.sprite.Group()
 obstacles = pygame.sprite.Group()  # создаем группу спрайтов
 clock = pygame.time.Clock()
@@ -28,13 +28,24 @@ player = pygame.sprite.Sprite(all_sprite)  # создаем спрайт
 player.image = pygame.image.load('images.jpg')  # добавляем спрайту картинку
 player.image = pygame.transform.scale(player.image, (50, 50))
 player.rect = player.image.get_rect()
-player.rect.topleft = (40, 40)
-
-platform = pygame.sprite.Sprite(obstacles)  # создаем спрайт
+player.rect.topleft = (200,500)
+x = 200
+y = 500
+platform = pygame.sprite.Sprite(obstacles, all_sprite)  # создаем спрайт
 platform.image = pygame.image.load('images.jpg')  # добавляем спрайту картинку
 platform.image = pygame.transform.scale(platform.image, (100, 20))
 platform.rect = platform.image.get_rect()
-platform.rect.topleft = (200, 500)
+platform.rect.topleft = (200, 550)
+
+def spawn_obstacle():
+    obstacle = pygame.sprite.Sprite(all_sprite, obstacles)
+    image_index = random.randint(1, 2)
+    obstacle.image = pygame.image.load(f'platform{image_index}.png')
+    obstacle.rect = obstacle.image.get_rect()
+    obstacle.rect.x = random.randint(
+        obstacle.rect.width // 2, SCREEN_WIDTH - obstacle.rect.width // 2
+    )
+    obstacle.rect.y = -150
 
 jumpflag = False
 run = True
@@ -49,12 +60,23 @@ while run:
         x += speed
     if keys[pygame.K_a]:
         x -= speed
-    #gravity
+    #gravity player
     if jumpflag:
         gravity_t = gravity_t_max
         jumpflag = False
     y += gravity * gravity_t
+    if y< info_h/2:
+        changeFlag = True
+        y -= gravity * gravity_t
     gravity_t+=1/60
+    #gravity platform
+    for obstacle in obstacles:
+        if changeFlag:
+            obstacle.rect.y += gravity * gravity_t
+            if obstacle.rect.top > info_h:
+                spawn_obstacle()
+                obstacle.kill()
+    changeFlag = False
     #draw
     player.rect.centerx = x  # управление координатами спрайта
     player.rect.centery = y   # управление координатами спрайта
