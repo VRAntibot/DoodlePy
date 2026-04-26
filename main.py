@@ -16,49 +16,61 @@ WHITE = (255, 255, 255)
 x = 0
 y = 0
 flaga = True
-gravity = 4
+springflag = True
+gravity = 6
 gravity_kef = 2  # gravity * gravity_t
 gravity_t = 0
 gravity_t_max = -1
 speed = 5
 changeFlag = False
 all_sprite = pygame.sprite.Group()
-obstacles = pygame.sprite.Group()  # создаем группу спрайтов
+obstacles = pygame.sprite.Group()
+platforms = pygame.sprite.Group()
+springs = pygame.sprite.Group()# создаем группу спрайтов
 clock = pygame.time.Clock()
 
 player = pygame.sprite.Sprite(all_sprite)  # создаем спрайт
-player.image = pygame.image.load('images.jpg')  # добавляем спрайту картинку
+player.image = pygame.image.load('player.png')  # добавляем спрайту картинку
 player.image = pygame.transform.scale(player.image, (50, 50))
 player.rect = player.image.get_rect()
 player.rect.topleft = (200,450)
 x = 200
 y = 450
-platform = pygame.sprite.Sprite(obstacles, all_sprite)  # создаем спрайт
-platform.image = pygame.image.load('images.jpg')  # добавляем спрайту картинку
-platform.image = pygame.transform.scale(platform.image, (100, 20))
-platform.rect = platform.image.get_rect()
-platform.rect.topleft = (200, 450)
 def spawn_obstacle(y):
-    obstacle = pygame.sprite.Sprite(all_sprite, obstacles)
-    image_index = random.randint(1, 2)
-    obstacle.image = pygame.image.load(f'platform{image_index}.png')
-    obstacle.rect = obstacle.image.get_rect()
-    print(random.randint(0, int(info_w)))
-    obstacle.rect.x = random.randint(0, int(info_w))
-    obstacle.rect.y = y
+    a = random.randint(1,15)
+    if a == 1:
+        spring = pygame.sprite.Sprite(all_sprite, springs, obstacles)
+        image_index = random.randint(1, 2)
+        spring.image = pygame.image.load(f'spring{image_index}.png')
+        spring.image = pygame.transform.scale(spring.image, (100, 70))
+        spring.rect = spring.image.get_rect()
+        # position
+        print(random.randint(0, int(info_w)))
+        spring.rect.x = random.randint(0, int(info_w))
+        spring.rect.y = y
+    else:
+        platform = pygame.sprite.Sprite(all_sprite, obstacles,platforms)
+        image_index = random.randint(1, 2)
+        platform.image = pygame.image.load(f'platform{image_index}.png')
+        platform.image = pygame.transform.scale(platform.image, (100, 70))
+        platform.rect = platform.image.get_rect()
+        #position
+        print(random.randint(0, int(info_w)))
+        platform.rect.x = random.randint(0, int(info_w))
+        platform.rect.y = y
 def create_initial_obstacles():
-    fixed_y_positions = [100, 200, 300, 400, 500, 600]
+    fixed_y_positions = [100,150, 200,250, 300,350, 400,450, 500,550, 600,650,700,750,800,850,900,950,1000]
     for y in fixed_y_positions:
         spawn_obstacle(y)
 
 jumpflag = False
 run = True
-create_initial_obstacles()
+#create_initial_obstacles()
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-    
+
     screen.fill(WHITE)
     if flaga:
         create_initial_obstacles()
@@ -69,7 +81,10 @@ while run:
     if keys[pygame.K_a]:
         x -= speed
     #gravity player
-    if jumpflag:
+    if springflag:
+        gravity_t = gravity_t_max*2
+        springflag = False
+    elif jumpflag:
         gravity_t = gravity_t_max
         jumpflag = False
     y += gravity * gravity_t
@@ -91,9 +106,10 @@ while run:
     screen.blit(player.image, player.rect)  # отрисовываем спрайт на экране
     for obstacle in obstacles:
         screen.blit(obstacle.image, obstacle.rect)
-    if pygame.sprite.collide_mask(player, platform) and gravity_t>0:
+    if pygame.sprite.spritecollide(player, platforms, False, pygame.sprite.collide_mask) and gravity_t>0:
         jumpflag = True
-    
+    if pygame.sprite.spritecollide(player, springs, False, pygame.sprite.collide_mask) and gravity_t>0:
+        springflag = True
     pygame.display.update()
-    clock.tick(60) 
+    clock.tick(60)
 pygame.quit()
