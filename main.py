@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 pygame.init()
 info = pygame.display.Info()
@@ -15,6 +16,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 x = 0
 y = 0
+score=0
 flaga = True
 springflag = True
 gravity = 6
@@ -22,6 +24,9 @@ gravity_kef = 2  # gravity * gravity_t
 gravity_t = 0
 gravity_t_max = -1
 speed = 5
+fps = 0
+frames = 0
+last_event_time = time.time()
 changeFlag = False
 all_sprite = pygame.sprite.Group()
 obstacles = pygame.sprite.Group()
@@ -34,7 +39,6 @@ player.image = pygame.image.load('player.png')  # добавляем спрай�
 player.image = pygame.transform.scale(player.image, (50, 50))
 
 background_image = pygame.image.load('back.png')
-
 
 player.rect = player.image.get_rect()
 player.rect.topleft = (200,450)
@@ -63,7 +67,7 @@ def spawn_obstacle(y):
         platform.rect.x = random.randint(0, int(info_w))
         platform.rect.y = y
 def create_initial_obstacles():
-    fixed_y_positions = [100,150, 200,250, 300,350, 400,450, 500,550, 600,650,700,750,800,850,900,950,1000]
+    fixed_y_positions = list(range(75, 901, 75))
     for y in fixed_y_positions:
         spawn_obstacle(y)
 
@@ -76,7 +80,13 @@ while run:
             run = False
     screen.blit(background_image, (0, 0))
     
-
+    #fps counter
+    frames+=1
+    current_time = time.time()
+    if current_time - last_event_time >= 1:
+        last_event_time = current_time
+        fps = frames
+        frames = 0
     if flaga:
         create_initial_obstacles()
         flaga = False
@@ -86,6 +96,19 @@ while run:
     if keys[pygame.K_a]:
         x -= speed
     #gravity player
+    if player.rect.left > SCREEN_WIDTH:
+        player.rect.right = 0
+        x = player.rect.right 
+    if player.rect.right < 0:
+        player.rect.left = SCREEN_WIDTH
+        x = player.rect.left 
+    if player.rect.top > SCREEN_HEIGHT:
+        player.rect.bottom = 0
+        y = player.rect.bottom
+    if player.rect.bottom < 0:
+        player.rect.top = SCREEN_HEIGHT
+        y = player.rect.top
+    
     if springflag:
         gravity_t = gravity_t_max*2
         springflag = False
@@ -96,6 +119,7 @@ while run:
     if y< info_h/2:
         changeFlag = True
         y -= gravity * gravity_t
+        score+=1
     gravity_t+=1/60
     #gravity platform
     for obstacle in obstacles:
@@ -106,6 +130,15 @@ while run:
                 obstacle.kill()
     changeFlag = False
     #draw
+        #text
+    font_object = pygame.font.SysFont('Arial', 28)
+    text = font_object.render(f'Score:{score}', False, 'white')
+    screen.blit(text, (10, 10))
+    #fps
+    font_object = pygame.font.SysFont('Arial', 28)
+    text = font_object.render(f'Fps:{fps}', False, 'white')
+    screen.blit(text, (info_w-100, 10))
+        #player
     player.rect.centerx = x  # управление координатами спрайта
     player.rect.centery = y   # управление координатами спрайта
     screen.blit(player.image, player.rect)  # отрисовываем спрайт на экране
