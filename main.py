@@ -32,6 +32,10 @@ clock = pygame.time.Clock()
 player = pygame.sprite.Sprite(all_sprite)  # создаем спрайт
 player.image = pygame.image.load('player.png')  # добавляем спрайту картинку
 player.image = pygame.transform.scale(player.image, (50, 50))
+
+background_image = pygame.image.load('back.png')
+
+
 player.rect = player.image.get_rect()
 player.rect.topleft = (200,450)
 x = 200
@@ -70,8 +74,9 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+    screen.blit(background_image, (0, 0))
+    
 
-    screen.fill(WHITE)
     if flaga:
         create_initial_obstacles()
         flaga = False
