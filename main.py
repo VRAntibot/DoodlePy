@@ -16,6 +16,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 x = 0
 y = 0
+b = ""
+high_jump = False
 score=0
 flaga = True
 springflag = True
@@ -26,12 +28,16 @@ gravity_t_max = -1
 speed = 5
 fps = 0
 frames = 0
+change_plat = False
 last_event_time = time.time()
+change_time = time.time()
 changeFlag = False
 all_sprite = pygame.sprite.Group()
 obstacles = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
+move = pygame.sprite.Group()
 springs = pygame.sprite.Group()# создаем группу спрайтов
+destructible = pygame.sprite.Group()# создаем группу спрайтов
 clock = pygame.time.Clock()
 
 player = pygame.sprite.Sprite(all_sprite)  # создаем спрайт
@@ -56,6 +62,26 @@ def spawn_obstacle(y):
         print(random.randint(0, int(info_w)))
         spring.rect.x = random.randint(0, int(info_w))
         spring.rect.y = y
+    elif a == 2:
+        d_platform = pygame.sprite.Sprite(all_sprite, destructible, obstacles)
+        image_index = random.randint(1, 2)
+        d_platform.image = pygame.image.load(f'platform_d.png')
+        d_platform.image = pygame.transform.scale(d_platform.image, (100, 70))
+        d_platform.rect = d_platform.image.get_rect()
+        # position
+        print(random.randint(0, int(info_w)))
+        d_platform.rect.x = random.randint(0, int(info_w))
+        d_platform.rect.y = y
+    elif a == 3 or a == 4:
+        m_platform = pygame.sprite.Sprite(all_sprite, move, platforms, obstacles)
+        image_index = random.randint(1, 2)
+        m_platform.image = pygame.image.load(f'platform_m.png')
+        m_platform.image = pygame.transform.scale(m_platform.image, (100, 70))
+        m_platform.rect = m_platform.image.get_rect()
+        # position
+        print(random.randint(0, int(info_w)))
+        m_platform.rect.x = random.randint(0, int(info_w))
+        m_platform.rect.y = y
     else:
         platform = pygame.sprite.Sprite(all_sprite, obstacles,platforms)
         image_index = random.randint(1, 2)
@@ -95,6 +121,13 @@ while run:
         x += speed
     if keys[pygame.K_a]:
         x -= speed
+    if keys[pygame.K_SPACE]:
+        high_jump = True
+        b = "High jump"
+    else:
+        high_jump = False
+        b = ""
+
     #gravity player
     if player.rect.left > SCREEN_WIDTH:
         player.rect.right = 0
@@ -102,13 +135,10 @@ while run:
     if player.rect.right < 0:
         player.rect.left = SCREEN_WIDTH
         x = player.rect.left 
-    if player.rect.top > SCREEN_HEIGHT:
-        player.rect.bottom = 0
-        y = player.rect.bottom
-    if player.rect.bottom < 0:
-        player.rect.top = SCREEN_HEIGHT
-        y = player.rect.top
-    
+    if y > 800:
+        b = "Game over :("
+
+
     if springflag:
         gravity_t = gravity_t_max*2
         springflag = False
@@ -129,10 +159,22 @@ while run:
                 spawn_obstacle(0)
                 obstacle.kill()
     changeFlag = False
+    
+    if current_time - change_time >= 5:
+        change_time = current_time
+        if change_plat:
+            change_plat = False
+        else:
+            change_plat = True
+    for plat in move:
+        if change_plat:
+            plat.rect.y -= 1
+        else:
+            plat.rect.y += 1 
     #draw
         #text
     font_object = pygame.font.SysFont('Arial', 28)
-    text = font_object.render(f'Score:{score}', False, 'white')
+    text = font_object.render(f'Score:{score} {b}', False, 'white')
     screen.blit(text, (10, 10))
     #fps
     font_object = pygame.font.SysFont('Arial', 28)
@@ -145,9 +187,18 @@ while run:
     for obstacle in obstacles:
         screen.blit(obstacle.image, obstacle.rect)
     if pygame.sprite.spritecollide(player, platforms, False, pygame.sprite.collide_mask) and gravity_t>0:
-        jumpflag = True
+        if high_jump and score > 500:
+            springflag = True
+            score -= 500
+        else:
+            jumpflag = True
     if pygame.sprite.spritecollide(player, springs, False, pygame.sprite.collide_mask) and gravity_t>0:
         springflag = True
+    hits = pygame.sprite.spritecollide(player, destructible, False, pygame.sprite.collide_mask)
+    if hits and gravity_t>0:
+        jumpflag = True
+        for hit in hits:
+            hit.kill()
     pygame.display.update()
     clock.tick(60)
 pygame.quit()
