@@ -27,6 +27,7 @@ gravity_t = 0
 gravity_t_max = -1
 speed = 5
 fps = 0
+max = 0
 frames = 0
 change_plat = False
 last_event_time = time.time()
@@ -39,12 +40,14 @@ move = pygame.sprite.Group()
 springs = pygame.sprite.Group()# создаем группу спрайтов
 destructible = pygame.sprite.Group()# создаем группу спрайтов
 clock = pygame.time.Clock()
-
+lastscore = 0
 player = pygame.sprite.Sprite(all_sprite)  # создаем спрайт
 player.image = pygame.image.load('player.png')  # добавляем спрайту картинку
 player.image = pygame.transform.scale(player.image, (50, 50))
 
 background_image = pygame.image.load('back.png')
+
+bonusplat = 0
 
 player.rect = player.image.get_rect()
 player.rect.topleft = (200,450)
@@ -59,7 +62,7 @@ def spawn_obstacle(y):
         spring.image = pygame.transform.scale(spring.image, (100, 70))
         spring.rect = spring.image.get_rect()
         # position
-        print(random.randint(0, int(info_w)))
+       # print(random.randint(0, int(info_w)))
         spring.rect.x = random.randint(0, int(info_w))
         spring.rect.y = y
     elif a == 2:
@@ -69,7 +72,7 @@ def spawn_obstacle(y):
         d_platform.image = pygame.transform.scale(d_platform.image, (100, 70))
         d_platform.rect = d_platform.image.get_rect()
         # position
-        print(random.randint(0, int(info_w)))
+       # print(random.randint(0, int(info_w)))
         d_platform.rect.x = random.randint(0, int(info_w))
         d_platform.rect.y = y
     elif a == 3 or a == 4:
@@ -79,7 +82,7 @@ def spawn_obstacle(y):
         m_platform.image = pygame.transform.scale(m_platform.image, (100, 70))
         m_platform.rect = m_platform.image.get_rect()
         # position
-        print(random.randint(0, int(info_w)))
+       # print(random.randint(0, int(info_w)))
         m_platform.rect.x = random.randint(0, int(info_w))
         m_platform.rect.y = y
     else:
@@ -89,7 +92,7 @@ def spawn_obstacle(y):
         platform.image = pygame.transform.scale(platform.image, (100, 70))
         platform.rect = platform.image.get_rect()
         #position
-        print(random.randint(0, int(info_w)))
+      #  print(random.randint(0, int(info_w)))
         platform.rect.x = random.randint(0, int(info_w))
         platform.rect.y = y
 def create_initial_obstacles():
@@ -105,7 +108,7 @@ while run:
         if event.type == pygame.QUIT:
             run = False
     screen.blit(background_image, (0, 0))
-    
+
     #fps counter
     frames+=1
     current_time = time.time()
@@ -150,13 +153,24 @@ while run:
         changeFlag = True
         y -= gravity * gravity_t
         score+=1
+        if bonusplat > 0:
+            m = random.randint(0,30)
+            if m == 1:
+                spawn_obstacle(0)
+                bonusplat -= 1
+
     gravity_t+=1/60
     #gravity platform
     for obstacle in obstacles:
         if changeFlag:
             obstacle.rect.y -= gravity * gravity_t
             if obstacle.rect.top > info_h:
-                spawn_obstacle(0)
+                if score - lastscore < 50 :
+                    spawn_obstacle(0)
+                    print(f"last score {lastscore}")
+                else:
+                    bonusplat +=1
+                lastscore = score
                 obstacle.kill()
     changeFlag = False
     
