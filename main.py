@@ -65,7 +65,7 @@ def spawn_obstacle(y):
        # print(random.randint(0, int(info_w)))
         spring.rect.x = random.randint(0, int(info_w))
         spring.rect.y = y
-    elif a == 2:
+    elif a == 2 or a == 3 or a == 5:
         d_platform = pygame.sprite.Sprite(all_sprite, destructible, obstacles)
         image_index = random.randint(1, 2)
         d_platform.image = pygame.image.load(f'platform_d.png')
@@ -75,7 +75,7 @@ def spawn_obstacle(y):
        # print(random.randint(0, int(info_w)))
         d_platform.rect.x = random.randint(0, int(info_w))
         d_platform.rect.y = y
-    elif a == 3 or a == 4:
+    elif a == 4:
         m_platform = pygame.sprite.Sprite(all_sprite, move, platforms, obstacles)
         image_index = random.randint(1, 2)
         m_platform.image = pygame.image.load(f'platform_m.png')
@@ -213,6 +213,7 @@ while run:
         jumpflag = True
         for hit in hits:
             hit.kill()
+            bonusplat += 1
     pygame.display.update()
     clock.tick(60)
 pygame.quit()
