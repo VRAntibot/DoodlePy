@@ -201,9 +201,9 @@ while run:
     for obstacle in obstacles:
         screen.blit(obstacle.image, obstacle.rect)
     if pygame.sprite.spritecollide(player, platforms, False, pygame.sprite.collide_mask) and gravity_t>0:
-        if high_jump and score > 500:
+        if high_jump and score > 250:
             springflag = True
-            score -= 500
+            score -= 250
         else:
             jumpflag = True
     if pygame.sprite.spritecollide(player, springs, False, pygame.sprite.collide_mask) and gravity_t>0:
